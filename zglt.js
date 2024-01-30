@@ -29,7 +29,7 @@ let userList = [];
 let userIdx = 0;
 let userCount = 0;
 //调试
-$.is_debug = ($.isNode() ? process.env.IS_DEDUG : $.getdata('is_debug')) || 'false';
+$.is_debug = 'true';
 // 为通知准备的空数组
 $.notifyMsg = [];
 //bark推送
@@ -45,7 +45,7 @@ async function main() {
         if (user.ckStatus) {
             // ck未过期，开始执行任务
             console.log(`随机延迟${user.getRandomTime()}ms`);
-
+            await user.GetUserCreditStats();
             DoubleLog(`签到:${$.signMsg}\n积分: 总共(${total}) 有效(${valid}) 过期(${expired})`);
         } else {
             // 将ck过期消息存入消息数组
@@ -83,6 +83,7 @@ class UserInfo {
             let { result, error } = await httpRequest(post) ?? {};
             if (!error) {
                 $.log(`✅签到成功！`);
+                debug(error || result, "签到");
                 $.signMsg = `${result?.__showToast?.title}`;
             } else {
                 this.ckStatus = false;
