@@ -68,7 +68,7 @@ class UserInfo {
     // 签到函数
     async signin() {
         try {
-            const post = {
+            const options = {
                 url: `https://act.10010.com/SigninApp/signin/daySign`,
                 headers: {
                     "Content-Type": "application/x-www-form-urlencoded",
@@ -80,10 +80,10 @@ class UserInfo {
                 },
                 body: `shareCl=&shareCode=`
             };
-            let { result, error } = await httpRequest(post) ?? {};
+            let { result, error } = await httpRequest(options) ?? {};
+            console.log(result);
             if (!error) {
                 $.log(`✅签到成功！`);
-                $.log(error || result, "签到");
                 $.signMsg = `${result?.__showToast?.title}`;
             } else {
                 this.ckStatus = false;
@@ -98,7 +98,7 @@ class UserInfo {
     // 查询积分函数
     async GetUserCreditStats() {
         try {
-            const get = {
+            const options = {
                 url: `https://act.10010.com/SigninApp/convert/getTelephone`,
                 headers: {
                     "Content-Type": "application/x-www-form-urlencoded",
@@ -110,7 +110,8 @@ class UserInfo {
                 },
                 body: `https://act.10010.com/SigninApp/convert/getTelephone`
             };
-            let { error, result } = await httpRequest(get) ?? {};
+            let { error, result } = await httpRequest(options) ?? {};
+            console.log(result);
             let { total, valid, expired } = result;
             $.log(error || result, "积分");
             return { total, valid, expired }
