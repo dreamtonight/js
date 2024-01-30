@@ -29,7 +29,7 @@ let userList = [];
 let userIdx = 0;
 let userCount = 0;
 //调试
-$.is_debug = 'true';
+$.is_debug = ($.isNode() ? process.env.IS_DEDUG : $.getdata('is_debug')) || 'false';
 // 为通知准备的空数组
 $.notifyMsg = [];
 //bark推送
@@ -83,7 +83,7 @@ class UserInfo {
             let { result, error } = await httpRequest(post) ?? {};
             if (!error) {
                 $.log(`✅签到成功！`);
-                debug(error || result, "签到");
+                $.log(error || result, "签到");
                 $.signMsg = `${result?.__showToast?.title}`;
             } else {
                 this.ckStatus = false;
@@ -112,7 +112,7 @@ class UserInfo {
             };
             let { error, result } = await httpRequest(get) ?? {};
             let { total, valid, expired } = result;
-            debug(error || result, "积分")
+            $.log(error || result, "积分");
             return { total, valid, expired }
         } catch (e) {
             console.log(e);
