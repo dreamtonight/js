@@ -79,7 +79,7 @@ class UserInfo {
                 body: `shareCl=&shareCode=`
             };
             let result = await httpRequest(options);
-            $.log(result);
+            $.log(JSON.stringify(result));
             if (result.status === "0000") {
                 $.log(`✅签到成功！`);
                 $.signMsg = `${result?.__showToast?.title}`;
@@ -107,9 +107,9 @@ class UserInfo {
                 body: `https://act.10010.com/SigninApp/convert/getTelephone`
             };
             let result = await httpRequest(options);
-            $.log(result);
+            $.log(JSON.stringify(result));
             let { total, msg, status } = result;
-            $.log(error || result, "积分");
+            $.log(JSON.stringify(total));
             return { total }
         } catch (e) {
             console.log(e);
