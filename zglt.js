@@ -46,7 +46,7 @@ async function main() {
             // ck未过期，开始执行任务
             console.log(`随机延迟${user.getRandomTime()}ms`);
             await user.GetUserCreditStats();
-            DoubleLog(`签到:${$.signMsg}\n积分: 总共(${user.total})`);
+            DoubleLog(`签到:联通APP\n积分: 总共(${user.total})`);
         } else {
             // 将ck过期消息存入消息数组
             $.notifyMsg.push(`❌账号${user.index} >> Check ck error!`)
@@ -80,7 +80,7 @@ class UserInfo {
                 body: `shareCl=&shareCode=`
             };
             let result = await httpRequest(options);
-            $.log(JSON.stringify(result));
+            // $.log(JSON.stringify(result));
             if (result.status === "0000") {
                 $.log(`✅签到成功！`);
                 $.signMsg = `${result?.__showToast?.title}`;
@@ -114,7 +114,7 @@ class UserInfo {
                 body: `https://act.10010.com/SigninApp/convert/getTelephone`
             };
             let result = await httpRequest(options);
-            $.log(JSON.stringify(result));
+            // $.log(JSON.stringify(result));
             this.total = result.data.telephone
         } catch (e) {
             console.log(e);
