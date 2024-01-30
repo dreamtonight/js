@@ -46,7 +46,7 @@ async function main() {
             // ck未过期，开始执行任务
             console.log(`随机延迟${user.getRandomTime()}ms`);
             await user.GetUserCreditStats();
-            DoubleLog(`签到:${$.signMsg}\n积分: 总共(${total})`);
+            DoubleLog(`签到:${$.signMsg}\n积分: 总共(${user.total})`);
         } else {
             // 将ck过期消息存入消息数组
             $.notifyMsg.push(`❌账号${user.index} >> Check ck error!`)
@@ -59,6 +59,7 @@ class UserInfo {
         this.index = ++userIdx;
         this.token = str;
         this.ckStatus = true;
+        this.total = 0.0;
     }
 
     getRandomTime() {
@@ -114,9 +115,7 @@ class UserInfo {
             };
             let result = await httpRequest(options);
             $.log(JSON.stringify(result));
-            let { total, msg, status } = result;
-            $.log(JSON.stringify(total));
-            return { total }
+            this.total = result.data.telephone
         } catch (e) {
             console.log(e);
         }
