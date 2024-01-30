@@ -83,6 +83,12 @@ class UserInfo {
             if (result.status === "0000") {
                 $.log(`✅签到成功！`);
                 $.signMsg = `${result?.__showToast?.title}`;
+            } else if (result.status === "0002") {
+                $.log(`✅重复签到！`);
+                $.signMsg = `${result?.__showToast?.title}`;
+            } else if (result.status === "0001") {
+                $.log(`✅token失效！`);
+                $.signMsg = `${result?.__showToast?.title}`;
             } else {
                 this.ckStatus = false;
             }
