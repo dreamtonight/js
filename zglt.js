@@ -46,7 +46,7 @@ async function main() {
             // ck未过期，开始执行任务
             console.log(`随机延迟${user.getRandomTime()}ms`);
             await user.GetUserCreditStats();
-            DoubleLog(`签到:${$.signMsg}\n积分: 总共(${total}) 有效(${valid}) 过期(${expired})`);
+            DoubleLog(`签到:${$.signMsg}\n积分: 总共(${total})`);
         } else {
             // 将ck过期消息存入消息数组
             $.notifyMsg.push(`❌账号${user.index} >> Check ck error!`)
@@ -74,15 +74,13 @@ class UserInfo {
                     "Content-Type": "application/x-www-form-urlencoded",
                     "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 14_8 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 MicroMessenger/8.0.42(0x18002a2a) NetType/WIFI Language/zh_CN",
                     "Cookie": this.token,
-                    "Host": 'act.10010.com',
-                    "referer": 'https://img.client.10010.com/',
-                    "origin": 'https://img.client.10010.com'
+                    "accept": 'application/json, text/plain, */*'
                 },
                 body: `shareCl=&shareCode=`
             };
-            let { result, error } = await httpRequest(options) ?? {};
-            console.log(result);
-            if (!error) {
+            let result = await httpRequest(options);
+            $.log(result);
+            if (result.status === "0000") {
                 $.log(`✅签到成功！`);
                 $.signMsg = `${result?.__showToast?.title}`;
             } else {
@@ -104,17 +102,15 @@ class UserInfo {
                     "Content-Type": "application/x-www-form-urlencoded",
                     "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 14_8 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 MicroMessenger/8.0.42(0x18002a2a) NetType/WIFI Language/zh_CN",
                     "Cookie": this.token,
-                    "Host": 'act.10010.com',
-                    "referer": 'https://img.client.10010.com/',
-                    "origin": 'https://img.client.10010.com'
+                    "accept": 'application/json, text/plain, */*'
                 },
                 body: `https://act.10010.com/SigninApp/convert/getTelephone`
             };
-            let { error, result } = await httpRequest(options) ?? {};
-            console.log(result);
-            let { total, valid, expired } = result;
+            let result = await httpRequest(options);
+            $.log(result);
+            let { total, msg, status } = result;
             $.log(error || result, "积分");
-            return { total, valid, expired }
+            return { total }
         } catch (e) {
             console.log(e);
         }
