@@ -1,5 +1,6 @@
 /**************************************
 @dreamtonight
+====================================
 ⚠️【免责声明】
 ------------------------------------------
 1、此脚本仅用于学习研究，不保证其合法性、准确性、有效性，请根据情况自行判断，本人对此不承担任何保证责任。
@@ -12,8 +13,8 @@
 ******************************************/
 
 // env.js 全局
-const $ = new Env("联通app");
-const ckName = "lt_app_data";
+const $ = new Env("微信小程序ZIWI+");
+const ckName = "ziwi_data";
 //-------------------- 一般不动变量区域 -------------------------------------
 const Notify = 1;//0为关闭通知,1为打开通知,默认为1
 const notify = $.isNode() ? require('./sendNotify') : '';
@@ -39,8 +40,27 @@ async function main() {
         if (user.ckStatus) {
             // ck未过期，开始执行任务
             console.log(`随机延迟${user.getRandomTime()}ms`);
-            await user.GetUserCreditStats();
-            DoubleLog(`签到:联通APP\n积分: 总共(${user.total})`);
+            //获取帖子列表
+            let threadIds = await user.GetZIWIThreadList();
+            //发贴
+            await user.AddThread();
+            //用户ID
+            await user.getUserId();
+            //查询用户帖子id
+            await user.getUserThreads()
+            //删帖
+            await user.DeleteMyThread();
+            //日常任务
+            for (let thread of threadIds) {
+                // 分享
+                await user.SubmitCrmTrackLog(thread);
+                //评论
+                await user.CommentThread(thread);
+                //点赞
+                await user.LikeThread(thread);
+            }
+            let { total, valid, expired } = await user.GetUserCreditStats();
+            DoubleLog(`签到:${$.signMsg}\n积分: 总共(${total}) 有效(${valid}) 过期(${expired})`);
         } else {
             // 将ck过期消息存入消息数组
             $.notifyMsg.push(`❌账号${user.index} >> Check ck error!`)
@@ -53,7 +73,10 @@ class UserInfo {
         this.index = ++userIdx;
         this.token = str;
         this.ckStatus = true;
-        this.total = 0.0;
+        this.drawStatus = true;
+        this.threadList = []; //帖子列表id
+        this.userId = null; //用户id
+        this.tzid = []; //用户帖子id
     }
 
     getRandomTime() {
@@ -64,25 +87,18 @@ class UserInfo {
     async signin() {
         try {
             const options = {
-                url: `https://act.10010.com/SigninApp/signin/daySign`,
+                url: `https://ziwi.gzcrm.cn/json-rpc?__method=DoCheckin`,
                 headers: {
-                    "Content-Type": "application/x-www-form-urlencoded",
+                    "Content-Type": "application/json",
                     "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 14_8 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 MicroMessenger/8.0.42(0x18002a2a) NetType/WIFI Language/zh_CN",
-                    "Cookie": this.token,
-                    "accept": 'application/json, text/plain, */*'
+                    "Authorization": this.token,
+                    "serialId": ''
                 },
-                body: `shareCl=&shareCode=`
+                body: `{"id": 1706073615337,"jsonrpc": "2.0","method": "DoCheckin","params": {"activityId": "1"}}`
             };
-            let result = await httpRequest(options);
-            // $.log(JSON.stringify(result));
-            if (result.status === "0000") {
+            let { result, error } = await httpRequest(options) ?? {};
+            if (!error) {
                 $.log(`✅签到成功！`);
-                $.signMsg = `${result?.__showToast?.title}`;
-            } else if (result.status === "0002") {
-                $.log(`✅重复签到！`);
-                $.signMsg = `${result?.__showToast?.title}`;
-            } else if (result.status === "0001") {
-                $.log(`✅token失效！`);
                 $.signMsg = `${result?.__showToast?.title}`;
             } else {
                 this.ckStatus = false;
@@ -92,33 +108,243 @@ class UserInfo {
         }
     }
 
+    // 获取帖子列表函数
+    async GetZIWIThreadList() {
+        try {
+            const options = {
+                url: "https://ziwi.gzcrm.cn/json-rpc?__method=GetZIWIThreadList",
+                headers: {
+                    "Content-Type": "application/json",
+                    "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 14_8 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 MicroMessenger/8.0.42(0x18002a2a) NetType/WIFI Language/zh_CN",
+                    "Authorization": this.token,
+                    "serialId": ''
+                },
+                body: `{"id": 1706357937106,"jsonrpc":"2.0","method":"GetZIWIThreadList","params":{"type":"recommend","pageSize":10,"currentPage":1}}`
+            };
+            let result = await httpRequest(options);
+            //debug(result,"获取帖子列表")
+            const threadList = result?.result?.list || [];
+            const threadIds = threadList.map(thread => thread.threadId).slice(0, 10);
+            //save list
+            this.threadList = threadIds;
+            return threadIds;
+        } catch (e) {
+            console.log(e);
+            return [];
+        }
+    }
 
+    // 分享函数
+    async SubmitCrmTrackLog(threadId) {
+        try {
+
+            //   const randomThreadId = this.threadList[Math.floor(Math.random() * this.threadList.length)];
+
+            const options = {
+                url: `https://ziwi.gzcrm.cn/json-rpc?__method=SubmitCrmTrackLog`,
+                headers: {
+                    "Content-Type": "application/json",
+                    "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 14_8 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 MicroMessenger/8.0.42(0x18002a2a) NetType/WIFI Language/zh_CN",
+                    "Authorization": this.token,
+                    "serialId": ''
+                },
+                body: `{"id": 1706351980399,"jsonrpc": "2.0","method": "SubmitCrmTrackLog","params": {"event": "shareThread","params": {"path": "/pages/UserPosters/UserPosters?threadId=${threadId}","threadId": "${threadId}"}}}`
+            };
+
+            let { result, error } = await httpRequest(options) ?? {};
+            if (!error) {
+                $.log(`✅分享成功！`);
+            } else {
+                $.log(`❌分享失败!${cerror?.message}`);
+            }
+        } catch (e) {
+            console.log(e);
+        }
+    }
+
+    // 评论函数
+    async CommentThread(threadId) {
+        try {
+            const options = {
+                url: `https://ziwi.gzcrm.cn/json-rpc?__method=CommentThread`,
+                headers: {
+                    "Content-Type": "application/json",
+                    "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 14_8 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 MicroMessenger/8.0.42(0x18002a2a) NetType/WIFI Language/zh_CN",
+                    "Authorization": this.token,
+                    "serialId": ''
+                },
+                body: `{"id": 1706363458651,"jsonrpc": "2.0","method": "CommentThread","params": {"content": "5555555","level": "info","threadId": "${threadId}","threadCommentId": 0}}`
+            };
+
+            let { result, error } = await httpRequest(options) ?? {};
+            if (!error) {
+                $.log(`✅评论成功！`);
+            } else {
+                $.log(`❌评论失败!${cerror?.message}`);
+            }
+        } catch (e) {
+            console.log(e);
+        }
+    }
+
+    // 发帖函数
+    async AddThread() {
+        try {
+            const options = {
+                url: `https://ziwi.gzcrm.cn/json-rpc?__method=AddThread`,
+                headers: {
+                    "Content-Type": "application/json",
+                    "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 14_8 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 MicroMessenger/8.0.42(0x18002a2a) NetType/WIFI Language/zh_CN",
+                    "Authorization": this.token,
+                    "serialId": ''
+                },
+                body: `{"id": 1706364249449,"jsonrpc": "2.0","method": "AddThread","params": {"mediaFiles": [{"path": "https:\/\/ziwixcxcos.escase.cn\/2024\/01\/27\/45656b48f25e682c58e9c25495bfa88f.jpg","size": 0,"thumb": "https:\/\/ziwixcxcos.escase.cn\/2024\/01\/27\/45656b48f25e682c58e9c25495bfa88f.jpg","type": "image"}],"title": "用户帖子","content": "暗夜的猫好tm可爱喜欢吗","level": "info"}}`
+            };
+            let { result, error } = await httpRequest(options) ?? {};
+            debug(error || result, "发贴")
+            if (!error) {
+                $.log(`✅发贴成功！`);
+            } else {
+                $.log(`❌发贴失败!${error?.message}`);
+            }
+        } catch (e) {
+            console.log(e);
+        }
+    }
+
+    //查询用户id函数
+    async getUserId() {
+        try {
+            const options = {
+                url: `https://ziwi.gzcrm.cn/json-rpc?__method=GetZiwiMyInfo`,
+                headers: {
+                    "Content-Type": "application/json",
+                    "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 14_8 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 MicroMessenger/8.0.42(0x18002a2a) NetType/WIFI Language/zh_CN",
+                    "Authorization": this.token,
+                    "serialId": ''
+                },
+                body: '{"id": 1706487976025,"jsonrpc": "2.0","method": "GetZiwiMyInfo","params": {}}'
+            };
+            let { result, error } = await httpRequest(options) ?? {};
+            if (!error) {
+                this.userId = result?.userId;
+                console.log(`用户 ID: ${this.userId}`);
+            } else {
+                this.ckStatus = false;
+            }
+        } catch (e) {
+            console.log(e);
+        }
+    }
+
+
+    // 查帖子id函数
+    async getUserThreads() {
+        try {
+            const options = {
+                url: `https://ziwi.gzcrm.cn/json-rpc?__method=GetUserThreadList`,
+                headers: {
+                    "Content-Type": "application/json",
+                    "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 14_8 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 MicroMessenger/8.0.42(0x18002a2a) NetType/WIFI Language/zh_CN",
+                    "Authorization": this.token,
+                    "serialId": ''
+                },
+                body: `{"id": 1706441114877,"jsonrpc": "2.0","method": "GetUserThreadList","params": {"pageSize": 10,"userId": ${this.userId},"currentPage": 1}}`
+            };
+            let { result, error } = await httpRequest(options) ?? {};
+            if (!error) {
+                this.tzid = result?.list?.map(thread => thread.threadId) || [];
+                console.log(`帖子 ID: ${this.tzid}`);
+                if (this.tzid.length === 0) {
+                    console.log(`帖子id查询成功`);
+                }
+            } else {
+                console.log(`获取用户帖子失败! 没有帖子不是报错${error?.message}`);
+            }
+        } catch (e) {
+            console.log(e);
+        }
+    }
+
+    // 删帖函数
+    async DeleteMyThread() {
+        try {
+            for (let threadId of this.tzid) {
+                const options = {
+                    url: `https://ziwi.gzcrm.cn/json-rpc?__method=DeleteMyThread`,
+                    headers: {
+                        "Content-Type": "application/json",
+                        "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 14_8 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 MicroMessenger/8.0.42(0x18002a2a) NetType/WIFI Language/zh_CN",
+                        "Authorization": this.token,
+                        "serialId": ''
+                    },
+                    body: `{"id": 1706441251237,"jsonrpc": "2.0","method": "DeleteMyThread","params": {"threadId": "${threadId}"}}`
+                };
+                let { result, error } = await httpRequest(options) ?? {};
+                debug(error || result, "删贴")
+                if (!error) {
+                    $.log(`✅删贴成功！`);
+                } else {
+                    $.log(`❌删贴失败! 没有帖子不是报错${error?.message}`);
+                }
+            }
+        } catch (e) {
+            console.log(e);
+        }
+    }
+
+    // 点赞函数
+    async LikeThread(threadId) {
+        try {
+            const options = {
+                url: `https://ziwi.gzcrm.cn/json-rpc?__method=LikeThread`,
+                headers: {
+                    "Content-Type": "application/json",
+                    "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 14_8 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 MicroMessenger/8.0.42(0x18002a2a) NetType/WIFI Language/zh_CN",
+                    "Authorization": this.token,
+                    "serialId": ''
+                },
+                body: `{"id": 1706365735309,"jsonrpc": "2.0","method": "LikeThread","params": {"threadId": "${threadId}"}}`
+            };
+            let { result, error } = await httpRequest(options) ?? {};
+            debug(error || result, "点赞")
+            if (!error) {
+                $.log(`✅点赞成功！`);
+            } else {
+                $.log(`❌点赞失败!${cerror?.message}`);
+            }
+        } catch (e) {
+            console.log(e);
+        }
+    }
 
     // 查询积分函数
     async GetUserCreditStats() {
         try {
             const options = {
-                url: `https://act.10010.com/SigninApp/convert/getTelephone`,
+                url: `https://ziwi.gzcrm.cn/json-rpc?__method=GetUserCreditStats`,
                 headers: {
-                    "Content-Type": "application/x-www-form-urlencoded",
+                    "Content-Type": "application/json",
                     "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 14_8 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 MicroMessenger/8.0.42(0x18002a2a) NetType/WIFI Language/zh_CN",
-                    "Cookie": this.token,
-                    "accept": 'application/json, text/plain, */*'
+                    "Authorization": this.token,
+                    "serialId": ''
                 },
-                body: `https://act.10010.com/SigninApp/convert/getTelephone`
+                body: `{"id": 1706366568453,"jsonrpc": "2.0","method": "GetUserCreditStats","params": {"currency": "Z_Point"}}`
             };
-            let result = await httpRequest(options);
-            // $.log(JSON.stringify(result));
-            this.total = result.data.telephone
+            let { error, result } = await httpRequest(options) ?? {};
+            let { total, valid, expired } = result;
+            debug(error || result, "积分")
+            return { total, valid, expired }
         } catch (e) {
             console.log(e);
         }
     }
 }
 
+//获取Cookie
 async function getCookie() {
-    if ($request && $request.method != 'POST') {
-        const tokenValue = $request.headers['Cookie'] || $request.headers['Cookie'];
+    if ($request && $request.method != 'OPTIONS') {
+        const tokenValue = $request.headers['Authorization'] || $request.headers['authorization'];
         if (tokenValue) {
             $.setdata(tokenValue, ckName);
             $.msg($.name, "", "获取签到Cookie成功🎉");
@@ -127,7 +353,6 @@ async function getCookie() {
         }
     }
 }
-
 
 //主程序执行入口
 !(async () => {
