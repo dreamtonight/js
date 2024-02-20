@@ -46,7 +46,8 @@ async function main() {
 class UserInfo {
     constructor(str) {
         this.index = ++userIdx;
-        this.token = str;
+        const headers = JSON.parse($.getdata('longfor'));
+        this.headers = headers;
         this.ckStatus = true;
         this.total = 0.0;
     }
@@ -60,7 +61,7 @@ class UserInfo {
         try {
             const options = {
                 url: `https://longzhu.longfor.com/proxy/lmarketing-task-api-mvc-prod/openapi/task/v1/signature/clock`,
-                headers: this.token,
+                headers: this.headers,
                 body: `{"activity_no":"11111111111686241863606037740000"}`
             };
             // $.log(JSON.stringify(options));
@@ -83,7 +84,7 @@ class UserInfo {
         try {
             const options = {
                 url: `https://longzhu.longfor.com/proxy/lmarketing-task-api-mvc-prod/openapi/task/v1/lottery/sign`,
-                headers: this.token,
+                headers: this.headers,
                 body: `{"activity_no": "11111111111706579530574007540000"}`
             };
             // $.log(JSON.stringify(options));
@@ -106,7 +107,7 @@ class UserInfo {
         try {
             const options = {
                 url: `https://longzhu.longfor.com/proxy/lmarketing-task-api-mvc-prod/openapi/task/v1/lottery/luck`,
-                headers: this.token,
+                headers: this.headers,
                 body: `{
                     "activity_no": "11111111111706579530574007540000",
                     "task_id": "",
@@ -128,8 +129,6 @@ class UserInfo {
             console.log(e);
         }
     }
-
-
 }
 
 async function getCurrentTime() {
