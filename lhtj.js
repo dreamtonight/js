@@ -144,7 +144,6 @@ async function getCurrentTime() {
 }
 
 async function getCookie() {
-    $.msg($.name, "：", "："+JSON.stringify($request));
     if (typeof $request != 'undefined') {
         const headers = JSON.stringify($request.headers);
         if (headers) {
