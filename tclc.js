@@ -1,7 +1,5 @@
 /**************************************
-@Name：youzan的一系列微信小程序 
 @dreamtonight
-====================================
 ⚠️【免责声明】
 ------------------------------------------
 1、此脚本仅用于学习研究，不保证其合法性、准确性、有效性，请根据情况自行判断，本人对此不承担任何保证责任。
@@ -14,8 +12,8 @@
 ******************************************/
 
 // env.js 全局
-const $ = new Env("ffit8小程序签到");
-const ckName = "ffit_data";
+const $ = new Env("联通app");
+const ckName = "lt_app_data";
 //-------------------- 一般不动变量区域 -------------------------------------
 const Notify = 1;//0为关闭通知,1为打开通知,默认为1
 const notify = $.isNode() ? require('./sendNotify') : '';
@@ -24,44 +22,30 @@ let userCookie = ($.isNode() ? process.env[ckName] : $.getdata(ckName)) || '';
 let userList = [];
 let userIdx = 0;
 let userCount = 0;
+//调试
+$.is_debug = ($.isNode() ? process.env.IS_DEDUG : $.getdata('is_debug')) || 'false';
 // 为通知准备的空数组
 $.notifyMsg = [];
 //bark推送
 $.barkKey = ($.isNode() ? process.env["bark_key"] : $.getdata("bark_key")) || '';
 //---------------------- 自定义变量区域 -----------------------------------
 
-//脚本入口函数main()
+// 脚本入口函数main()
 async function main() {
     console.log('\n================== 任务 ==================\n');
-    let taskall = [];
+    // 签到
     for (let user of userList) {
+        await user.signin();
         if (user.ckStatus) {
-            //ck未过期，开始执行任务
-            // DoubleLog(`🔷账号${user.index} >> Start work`)
+            // ck未过期，开始执行任务
             console.log(`随机延迟${user.getRandomTime()}ms`);
-            taskall.push(await user.signin());
-            await $.wait(user.getRandomTime());
+            await user.GetUserCreditStats();
+            DoubleLog(`签到:联通APP\n积分: 总共(${user.total})`);
         } else {
-            //将ck过期消息存入消息数组
+            // 将ck过期消息存入消息数组
             $.notifyMsg.push(`❌账号${user.index} >> Check ck error!`)
         }
     }
-    await Promise.all(taskall);
-    console.log('\n================= 用户信息 =================\n');
-    taskall = [];
-    for (let user of userList) {
-        if (user.ckStatus) {
-            //ck未过期，开始执行任务
-            // DoubleLog(`🔷账号${user.index} >> Start work`)
-            console.log(`随机延迟${user.getRandomTime()}ms`);
-            taskall.push(await user.point());
-            await $.wait(user.getRandomTime());
-        } else {
-            //将ck过期消息存入消息数组
-            $.notifyMsg.push(`❌账号${user.index} >> Check ck error!`)
-        }
-    }
-    await Promise.all(taskall);
 }
 
 class UserInfo {
@@ -69,63 +53,77 @@ class UserInfo {
         this.index = ++userIdx;
         this.token = str;
         this.ckStatus = true;
-        this.drawStatus = true;
-        this.headers = {
-            "Extra-Data": { "is_weapp": 1 },
-            "User-Agent": " Mozilla/5.0 (iPhone; CPU iPhone OS 14_8 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 MicroMessenger/8.0.37(0x18002524) NetType/WIFI Language/zh_CN miniProgram/wx6b30ed1839d47d45",
-            "Cookie": this.token,
-        };
+        this.total = 0.0;
     }
+
     getRandomTime() {
         return randomInt(1000, 3000)
     }
-    //签到函数
+
+    // 签到函数
     async signin() {
-        try {
-            const options = {
-                //签到任务调用签到接口
-                url: `https://h5.youzan.com/wscump/checkin/checkinV2.json?checkinId=2713880`,
-                //请求头, 所有接口通用
-                headers: this.headers,
-            };
-            //post方法
-            let result = await httpRequest(options);
-            //console.log(result)
-            if (result?.code == 0) {
-                //obj.error是0代表完成
-                this.msg=`签到成功！获得${result?.data?.list[0]?.infos?.title}`;
-                console.log(this.msg);
-            } else {
-                console.log(`签到失败！${result?.msg}`)
-                this.msg='今日已签到'
-                //console.log(result);
+        return new Promise((resolve) => {
+        const time = new Date().getTime() + new Date().getTimezoneOffset()*60*1000 + 8*60*60*1000;
+          signbody    = JSON.parse($.getdata($.signKeyTCLX)).body;
+          signheaders = JSON.parse($.getdata($.signKeyTCLX)).headers;
+          url_t = JSON.parse($.getdata($.signKeyTCLX)).url;
+          const url = { 
+             url: 'https://openapi.17usoft.net/maskantactivityapi/memberCenterSign?_='+time,
+             headers: {
+                  'Origin': 'https://wx.17u.cn',
+                  'Accept-Encoding': 'gzip, deflate, br',
+                  'Connection': 'keep-alive',
+                  'Content-Type': 'application/json',
+                  'Host': 'openapi.17usoft.net',
+                  'User-Agent': signheaders['User-Agent'],
+                  'Accept-Language' : 'en-us',
+                  'Accept' : 'application/json',
+                  'Referer' : 'https://wx.17u.cn/',
+              },
+              body: signbody
+          }
+          //console.log(JSON.stringify(url));
+          $.post(url,(err, resp, data)=> {    
+            try {
+              console.log(data);
+              $.signBody = data
+              signStatus = resp.statusCode
+            } catch (e) {
+              $.logErr(e, resp)
+            } finally {
+              resolve()
             }
-        } catch (e) {
-            console.log(e);
-        }
-    }
-    
-    //查询用户信息
-    async point() {
+          })
+        })
+      }
+
+
+
+    // 查询积分函数
+    async GetUserCreditStats() {
         try {
             const options = {
-                //签到任务调用签到接口
-                url: `https://h5.youzan.com/wscump/pointstore/getCustomerPoints.json`,
-                //请求头, 所有接口通用
-                headers: this.headers,
+                url: `https://act.10010.com/SigninApp/convert/getTelephone`,
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded",
+                    "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 14_8 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 MicroMessenger/8.0.42(0x18002a2a) NetType/WIFI Language/zh_CN",
+                    "Cookie": this.token,
+                    "accept": 'application/json, text/plain, */*'
+                },
+                body: `https://act.10010.com/SigninApp/convert/getTelephone`
             };
-            //post方法
             let result = await httpRequest(options);
-            DoubleLog(`【账号${this.index}】${this.msg},余额：${result?.data?.totalAmount}`)
+            // $.log(JSON.stringify(result));
+            this.total = result.data.telephone
         } catch (e) {
             console.log(e);
         }
     }
 }
-//获取Cookie
+
 async function getCookie() {
-    if ($request && $request.method != 'OPTIONS') {
-        const tokenValue = $request.headers['Cookie'] || $request.headers['cookie'];
+    if ($request && $request.method != 'POST') {
+        const tokenValue = $request.headers['Cookie'] || $request.headers['Cookie'];
         if (tokenValue) {
             $.setdata(tokenValue, ckName);
             $.msg($.name, "", "获取签到Cookie成功🎉");
@@ -172,7 +170,20 @@ function DoubleLog(data) {
         $.notifyMsg.push(`${data}`);
     }
 }
-
+// DEBUG
+function debug(text, title = 'debug') {
+    if ($.is_debug === 'true') {
+        if (typeof text == "string") {
+            console.log(`\n-----------${title}------------\n`);
+            console.log(text);
+            console.log(`\n-----------${title}------------\n`);
+        } else if (typeof text == "object") {
+            console.log(`\n-----------${title}------------\n`);
+            console.log($.toStr(text));
+            console.log(`\n-----------${title}------------\n`);
+        }
+    }
+}
 //把json 转为以 ‘&’ 连接的字符串
 function toParams(body) {
     var params = Object.keys(body).map(function (key) {
@@ -219,6 +230,7 @@ async function SendMsg(message) {
         console.log(message)
     }
 }
+
 
 /** ---------------------------------固定不动区域----------------------------------------- */
 // prettier-ignore

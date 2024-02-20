@@ -1,7 +1,5 @@
 /**************************************
-@Name：youzan的一系列微信小程序 
 @dreamtonight
-====================================
 ⚠️【免责声明】
 ------------------------------------------
 1、此脚本仅用于学习研究，不保证其合法性、准确性、有效性，请根据情况自行判断，本人对此不承担任何保证责任。
@@ -14,8 +12,8 @@
 ******************************************/
 
 // env.js 全局
-const $ = new Env("ffit8小程序签到");
-const ckName = "ffit_data";
+const $ = new Env("龙湖天地小程序");
+const ckName = "longfor";
 //-------------------- 一般不动变量区域 -------------------------------------
 const Notify = 1;//0为关闭通知,1为打开通知,默认为1
 const notify = $.isNode() ? require('./sendNotify') : '';
@@ -24,44 +22,25 @@ let userCookie = ($.isNode() ? process.env[ckName] : $.getdata(ckName)) || '';
 let userList = [];
 let userIdx = 0;
 let userCount = 0;
+//调试
+$.is_debug = ($.isNode() ? process.env.IS_DEDUG : $.getdata('is_debug')) || 'false';
 // 为通知准备的空数组
 $.notifyMsg = [];
 //bark推送
 $.barkKey = ($.isNode() ? process.env["bark_key"] : $.getdata("bark_key")) || '';
 //---------------------- 自定义变量区域 -----------------------------------
 
-//脚本入口函数main()
+// 脚本入口函数main()
 async function main() {
     console.log('\n================== 任务 ==================\n');
-    let taskall = [];
+    // 签到
     for (let user of userList) {
-        if (user.ckStatus) {
-            //ck未过期，开始执行任务
-            // DoubleLog(`🔷账号${user.index} >> Start work`)
-            console.log(`随机延迟${user.getRandomTime()}ms`);
-            taskall.push(await user.signin());
-            await $.wait(user.getRandomTime());
-        } else {
-            //将ck过期消息存入消息数组
-            $.notifyMsg.push(`❌账号${user.index} >> Check ck error!`)
-        }
+        await user.signin();
+        
+        await user.signin_lottery();
+        wait
+        await user.lottery();
     }
-    await Promise.all(taskall);
-    console.log('\n================= 用户信息 =================\n');
-    taskall = [];
-    for (let user of userList) {
-        if (user.ckStatus) {
-            //ck未过期，开始执行任务
-            // DoubleLog(`🔷账号${user.index} >> Start work`)
-            console.log(`随机延迟${user.getRandomTime()}ms`);
-            taskall.push(await user.point());
-            await $.wait(user.getRandomTime());
-        } else {
-            //将ck过期消息存入消息数组
-            $.notifyMsg.push(`❌账号${user.index} >> Check ck error!`)
-        }
-    }
-    await Promise.all(taskall);
 }
 
 class UserInfo {
@@ -69,65 +48,105 @@ class UserInfo {
         this.index = ++userIdx;
         this.token = str;
         this.ckStatus = true;
-        this.drawStatus = true;
-        this.headers = {
-            "Extra-Data": { "is_weapp": 1 },
-            "User-Agent": " Mozilla/5.0 (iPhone; CPU iPhone OS 14_8 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 MicroMessenger/8.0.37(0x18002524) NetType/WIFI Language/zh_CN miniProgram/wx6b30ed1839d47d45",
-            "Cookie": this.token,
-        };
+        this.total = 0.0;
     }
+
     getRandomTime() {
         return randomInt(1000, 3000)
     }
-    //签到函数
+
+    // 签到函数
     async signin() {
         try {
             const options = {
-                //签到任务调用签到接口
-                url: `https://h5.youzan.com/wscump/checkin/checkinV2.json?checkinId=2713880`,
-                //请求头, 所有接口通用
-                headers: this.headers,
+                url: `https://longzhu.longfor.com/proxy/lmarketing-task-api-mvc-prod/openapi/task/v1/signature/clock`,
+                headers: this.token,
+                body: `{"activity_no":"11111111111686241863606037740000"}`
             };
-            //post方法
+            $.log(JSON.stringify(options));
             let result = await httpRequest(options);
-            //console.log(result)
-            if (result?.code == 0) {
-                //obj.error是0代表完成
-                this.msg=`签到成功！获得${result?.data?.list[0]?.infos?.title}`;
-                console.log(this.msg);
+            $.log(JSON.stringify(result));
+            if (result.code === "0000") {
+                $.log(`✅签到成功！`);
+                $.signMsg = `${result?.__showToast?.title}`;
             } else {
-                console.log(`签到失败！${result?.msg}`)
-                this.msg='今日已签到'
-                //console.log(result);
+                $.log(`✅签到失败！`);
+                $.signMsg = `${result?.__showToast?.title}`;
             }
         } catch (e) {
             console.log(e);
         }
     }
-    
-    //查询用户信息
-    async point() {
+
+    // 抽奖签到函数
+    async signin_lottery() {
         try {
             const options = {
-                //签到任务调用签到接口
-                url: `https://h5.youzan.com/wscump/pointstore/getCustomerPoints.json`,
-                //请求头, 所有接口通用
-                headers: this.headers,
+                url: `https://longzhu.longfor.com/proxy/lmarketing-task-api-mvc-prod/openapi/task/v1/lottery/sign`,
+                headers: this.token,
+                body: `{"activity_no": "11111111111706579530574007540000"}`
             };
-            //post方法
+            $.log(JSON.stringify(options));
             let result = await httpRequest(options);
-            DoubleLog(`【账号${this.index}】${this.msg},余额：${result?.data?.totalAmount}`)
+            $.log(JSON.stringify(result));
+            if (result.code === "0000") {
+                $.log(`✅签到成功！`);
+                $.signMsg = `${result?.__showToast?.title}`;
+            } else {
+                $.log(`✅签到失败！`);
+                $.signMsg = `${result?.__showToast?.title}`;
+            }
         } catch (e) {
             console.log(e);
         }
     }
+
+    // 抽奖函数
+    async lottery() {
+        try {
+            const options = {
+                url: `https://longzhu.longfor.com/proxy/lmarketing-task-api-mvc-prod/openapi/task/v1/lottery/luck`,
+                headers: this.token,
+                body: `{
+                    "activity_no": "11111111111706579530574007540000",
+                    "task_id": "",
+                    "time": "${getCurrentTime()}",
+                    "use_luck": 0
+                  }`
+            };
+            $.log(JSON.stringify(options));
+            let result = await httpRequest(options);
+            $.log(JSON.stringify(result));
+            if (result.code === "0000") {
+                $.log(`✅抽奖成功！`);
+                $.signMsg = `${result?.__showToast?.title}`;
+            } else {
+                $.log(`✅抽奖失败！`);
+                $.signMsg = `${result?.__showToast?.title}`;
+            }
+        } catch (e) {
+            console.log(e);
+        }
+    }
+
+    async getCurrentTime() {
+        var date = new Date();//当前时间
+        var year = date.getFullYear() //返回指定日期的年份
+        var month = repair(date.getMonth() + 1);//月
+        var day = repair(date.getDate());//日
+        var hour = repair(date.getHours());//时
+        var minute = repair(date.getMinutes());//分
+        var second = repair(date.getSeconds());//秒
+        //当前时间 
+        return year + "-" + month + "-" + day + " " + hour + ":" + minute + ":" + second;
+    }
 }
-//获取Cookie
+
 async function getCookie() {
-    if ($request && $request.method != 'OPTIONS') {
-        const tokenValue = $request.headers['Cookie'] || $request.headers['cookie'];
-        if (tokenValue) {
-            $.setdata(tokenValue, ckName);
+    if (typeof $request != 'undefined') {
+        const headers = JSON.stringify($request.headers);
+        if (headers) {
+            $.setdata(headers, ckName);
             $.msg($.name, "", "获取签到Cookie成功🎉");
         } else {
             $.msg($.name, "", "错误获取签到Cookie失败");
@@ -172,7 +191,20 @@ function DoubleLog(data) {
         $.notifyMsg.push(`${data}`);
     }
 }
-
+// DEBUG
+function debug(text, title = 'debug') {
+    if ($.is_debug === 'true') {
+        if (typeof text == "string") {
+            console.log(`\n-----------${title}------------\n`);
+            console.log(text);
+            console.log(`\n-----------${title}------------\n`);
+        } else if (typeof text == "object") {
+            console.log(`\n-----------${title}------------\n`);
+            console.log($.toStr(text));
+            console.log(`\n-----------${title}------------\n`);
+        }
+    }
+}
 //把json 转为以 ‘&’ 连接的字符串
 function toParams(body) {
     var params = Object.keys(body).map(function (key) {
@@ -219,6 +251,7 @@ async function SendMsg(message) {
         console.log(message)
     }
 }
+
 
 /** ---------------------------------固定不动区域----------------------------------------- */
 // prettier-ignore
