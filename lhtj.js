@@ -38,7 +38,7 @@ async function main() {
         await user.signin();
         
         await user.signin_lottery();
-        wait
+        
         await user.lottery();
     }
 }
@@ -63,7 +63,7 @@ class UserInfo {
                 headers: this.token,
                 body: `{"activity_no":"11111111111686241863606037740000"}`
             };
-            $.log(JSON.stringify(options));
+            // $.log(JSON.stringify(options));
             let result = await httpRequest(options);
             $.log(JSON.stringify(result));
             if (result.code === "0000") {
@@ -86,7 +86,7 @@ class UserInfo {
                 headers: this.token,
                 body: `{"activity_no": "11111111111706579530574007540000"}`
             };
-            $.log(JSON.stringify(options));
+            // $.log(JSON.stringify(options));
             let result = await httpRequest(options);
             $.log(JSON.stringify(result));
             if (result.code === "0000") {
@@ -114,7 +114,7 @@ class UserInfo {
                     "use_luck": 0
                   }`
             };
-            $.log(JSON.stringify(options));
+            // $.log(JSON.stringify(options));
             let result = await httpRequest(options);
             $.log(JSON.stringify(result));
             if (result.code === "0000") {
@@ -129,17 +129,19 @@ class UserInfo {
         }
     }
 
-    async getCurrentTime() {
-        var date = new Date();//当前时间
-        var year = date.getFullYear() //返回指定日期的年份
-        var month = repair(date.getMonth() + 1);//月
-        var day = repair(date.getDate());//日
-        var hour = repair(date.getHours());//时
-        var minute = repair(date.getMinutes());//分
-        var second = repair(date.getSeconds());//秒
-        //当前时间 
-        return year + "-" + month + "-" + day + " " + hour + ":" + minute + ":" + second;
-    }
+
+}
+
+async function getCurrentTime() {
+    var date = new Date();//当前时间
+    var year = date.getFullYear() //返回指定日期的年份
+    var month = repair(date.getMonth() + 1);//月
+    var day = repair(date.getDate());//日
+    var hour = repair(date.getHours());//时
+    var minute = repair(date.getMinutes());//分
+    var second = repair(date.getSeconds());//秒
+    //当前时间 
+    return year + "-" + month + "-" + day + " " + hour + ":" + minute + ":" + second;
 }
 
 async function getCookie() {
