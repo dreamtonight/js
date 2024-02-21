@@ -12,8 +12,8 @@
 ******************************************/
 
 // env.js 全局
-const $ = new Env("联通app");
-const ckName = "lt_app_data";
+const $ = new Env("城市通小程序");
+const ckName = "tclc_data";
 //-------------------- 一般不动变量区域 -------------------------------------
 const Notify = 1;//0为关闭通知,1为打开通知,默认为1
 const notify = $.isNode() ? require('./sendNotify') : '';
@@ -36,24 +36,15 @@ async function main() {
     // 签到
     for (let user of userList) {
         await user.signin();
-        if (user.ckStatus) {
-            // ck未过期，开始执行任务
-            console.log(`随机延迟${user.getRandomTime()}ms`);
-            await user.GetUserCreditStats();
-            DoubleLog(`签到:联通APP\n积分: 总共(${user.total})`);
-        } else {
-            // 将ck过期消息存入消息数组
-            $.notifyMsg.push(`❌账号${user.index} >> Check ck error!`)
-        }
     }
 }
 
 class UserInfo {
     constructor(str) {
         this.index = ++userIdx;
-        this.token = str;
+        const headers = JSON.parse($.getdata('tclc_data'));
+        this.headers = headers;
         this.ckStatus = true;
-        this.total = 0.0;
     }
 
     getRandomTime() {
@@ -62,59 +53,22 @@ class UserInfo {
 
     // 签到函数
     async signin() {
-        return new Promise((resolve) => {
-        const time = new Date().getTime() + new Date().getTimezoneOffset()*60*1000 + 8*60*60*1000;
-          signbody    = JSON.parse($.getdata($.signKeyTCLX)).body;
-          signheaders = JSON.parse($.getdata($.signKeyTCLX)).headers;
-          url_t = JSON.parse($.getdata($.signKeyTCLX)).url;
-          const url = { 
-             url: 'https://openapi.17usoft.net/maskantactivityapi/memberCenterSign?_='+time,
-             headers: {
-                  'Origin': 'https://wx.17u.cn',
-                  'Accept-Encoding': 'gzip, deflate, br',
-                  'Connection': 'keep-alive',
-                  'Content-Type': 'application/json',
-                  'Host': 'openapi.17usoft.net',
-                  'User-Agent': signheaders['User-Agent'],
-                  'Accept-Language' : 'en-us',
-                  'Accept' : 'application/json',
-                  'Referer' : 'https://wx.17u.cn/',
-              },
-              body: signbody
-          }
-          //console.log(JSON.stringify(url));
-          $.post(url,(err, resp, data)=> {    
-            try {
-              console.log(data);
-              $.signBody = data
-              signStatus = resp.statusCode
-            } catch (e) {
-              $.logErr(e, resp)
-            } finally {
-              resolve()
-            }
-          })
-        })
-      }
-
-
-
-    // 查询积分函数
-    async GetUserCreditStats() {
         try {
             const options = {
-                url: `https://act.10010.com/SigninApp/convert/getTelephone`,
-                headers: {
-                    "Content-Type": "application/x-www-form-urlencoded",
-                    "User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 14_8 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 MicroMessenger/8.0.42(0x18002a2a) NetType/WIFI Language/zh_CN",
-                    "Cookie": this.token,
-                    "accept": 'application/json, text/plain, */*'
-                },
-                body: `https://act.10010.com/SigninApp/convert/getTelephone`
+                url: `https://wx.17u.cn/wxmpsign/sign/saveSignInfo`,
+                headers: this.headers,
+                body: `{}`
             };
+            // $.log(JSON.stringify(options));
             let result = await httpRequest(options);
-            // $.log(JSON.stringify(result));
-            this.total = result.data.telephone
+            $.log(JSON.stringify(result));
+            if (result.code === 200) {
+                $.log(`✅签到成功！`);
+                $.signMsg = `${result?.__showToast?.title}`;
+            } else {
+                $.log(`✅签到失败！`);
+                $.signMsg = `${result?.__showToast?.title}`;
+            }
         } catch (e) {
             console.log(e);
         }
@@ -122,10 +76,10 @@ class UserInfo {
 }
 
 async function getCookie() {
-    if ($request && $request.method != 'POST') {
-        const tokenValue = $request.headers['Cookie'] || $request.headers['Cookie'];
-        if (tokenValue) {
-            $.setdata(tokenValue, ckName);
+    if (typeof $request != 'undefined') {
+        const headers = JSON.stringify($request.headers);
+        if (headers) {
+            $.setdata(headers, ckName);
             $.msg($.name, "", "获取签到Cookie成功🎉");
         } else {
             $.msg($.name, "", "错误获取签到Cookie失败");
