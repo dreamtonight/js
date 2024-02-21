@@ -10,7 +10,7 @@
 const $ = new Env("微信小程序_骁龙骁友会");
 const ckName = "wx_xlxyh_data";
 const Notify = 1; //0为关闭通知,1为打开通知,默认为1
-let envSplitor = ["@", "\n"]; //多账号分隔符
+let envSplitor = ["!!!"]; //多账号分隔符
 let strSplitor = '&'; //多变量分隔符
 let scriptVersionNow = "0.0.1";
 let jsUrl = "https://originfastly.jsdelivr.net/gh/smallfawn/Note@main/JavaScript/test_v2.js"
