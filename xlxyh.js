@@ -11,18 +11,13 @@ const $ = new Env("微信小程序_骁龙骁友会");
 const ckName = "wx_xlxyh_data";
 const Notify = 1; //0为关闭通知,1为打开通知,默认为1
 let envSplitor = ["!!!"]; //多账号分隔符
-let strSplitor = '&'; //多变量分隔符
 let scriptVersionNow = "0.0.1";
-let jsUrl = "https://originfastly.jsdelivr.net/gh/smallfawn/Note@main/JavaScript/test_v2.js"
-let noticeUrl = `https://originfastly.jsdelivr.net/gh/smallfawn/Note@main/Notice.json`
-
 class UserInfo {
     constructor(str) {
         this.index = ++$.userIdx;
-        this.ck = str.split(strSplitor)[0]; //单账号多变量分隔符
-        this.ck1 = str.split(strSplitor)[1];
         this.ckStatus = true;
         this.headers_get = JSON.parse($.getdata('wx_xlxyh_data'));
+        this.ck1 = this.headers_get.userId;
         this.articleId = null;
     }
 
