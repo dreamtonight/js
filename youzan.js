@@ -15,7 +15,7 @@
 
 // env.js 全局
 const $ = new Env("有赞小程序签到");
-const ckName = "youzan_data";
+const ckName = "youzan_le_data";
 //-------------------- 一般不动变量区域 -------------------------------------
 const Notify = 1;//0为关闭通知,1为打开通知,默认为1
 const notify = $.isNode() ? require('./sendNotify') : '';
@@ -127,13 +127,13 @@ class UserInfo {
 //获取Cookie
 async function getCookie() {
     if ($request && $request.method != 'OPTIONS') {
-        let tokenValue = $request.headers['Extra-Data'] || $request.headers['Extra-Data'];
+        let tokenValue = $request.headers['Extra-Data']['sid'] || $request.headers['extra-data'][sid];
         let id = $request.url.split("=")[1].split('&')[0]
         if (tokenValue) {
             let cookies = $.getdata(ckName);
-            if(cookies){
-                cookies += id + ':' + tokenValue;
-            }else{
+            if (cookies) {
+                cookies += "&" + id + ':' + tokenValue;
+            } else {
                 cookies = id + ':' + tokenValue;
             }
             $.setdata(cookies, ckName);
