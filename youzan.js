@@ -14,15 +14,18 @@
 ******************************************/
 
 // env.js 全局
-const $ = new Env("ffit8小程序签到");
-const ckName = "ffit_data";
+const $ = new Env("有赞小程序签到");
+const ckName = "youzan_data";
 //-------------------- 一般不动变量区域 -------------------------------------
 const Notify = 1;//0为关闭通知,1为打开通知,默认为1
 const notify = $.isNode() ? require('./sendNotify') : '';
 let envSplitor = ["@"]; //多账号分隔符
 let userCookie = ($.isNode() ? process.env[ckName] : $.getdata(ckName)) || '';
 let userList = [];
-let userIdx = 0;
+let pd_map = {
+    '1479428': 'ffit8',
+    '2187565': '蜜蜂惊喜舍',
+};
 let userCount = 0;
 // 为通知准备的空数组
 $.notifyMsg = [];
@@ -66,14 +69,13 @@ async function main() {
 
 class UserInfo {
     constructor(str) {
-        this.index = ++userIdx;
-        this.token = str;
+        this.index = str.split(':')[0];
+        this.token = str.split(':')[1];
         this.ckStatus = true;
         this.drawStatus = true;
         this.headers = {
-            "Extra-Data": { "is_weapp": 1 },
-            "User-Agent": " Mozilla/5.0 (iPhone; CPU iPhone OS 14_8 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 MicroMessenger/8.0.37(0x18002524) NetType/WIFI Language/zh_CN miniProgram/wx6b30ed1839d47d45",
-            "Cookie": this.token,
+            "Extra-Data": { "is_weapp": 1, "sid": this.token },
+            "User-Agent": " Mozilla/5.0 (iPhone; CPU iPhone OS 14_8 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 MicroMessenger/8.0.37(0x18002524) NetType/WIFI Language/zh_CN miniProgram/wx6b30ed1839d47d45"
         };
     }
     getRandomTime() {
@@ -84,7 +86,7 @@ class UserInfo {
         try {
             const options = {
                 //签到任务调用签到接口
-                url: `https://h5.youzan.com/wscump/checkin/checkinV2.json?checkinId=2713880`,
+                url: `https://h5.youzan.com/wscump/checkin/checkinV2.json?checkinId=` + this.index,
                 //请求头, 所有接口通用
                 headers: this.headers,
             };
@@ -93,18 +95,18 @@ class UserInfo {
             //console.log(result)
             if (result?.code == 0) {
                 //obj.error是0代表完成
-                this.msg=`签到成功！获得${result?.data?.list[0]?.infos?.title}`;
+                this.msg = pd_map[this.index] + `签到成功！获得${result?.data?.list[0]?.infos?.title}`;
                 console.log(this.msg);
             } else {
                 console.log(`签到失败！${result?.msg}`)
-                this.msg='今日已签到'
+                this.msg = '今日已签到'
                 //console.log(result);
             }
         } catch (e) {
             console.log(e);
         }
     }
-    
+
     //查询用户信息
     async point() {
         try {
@@ -125,9 +127,16 @@ class UserInfo {
 //获取Cookie
 async function getCookie() {
     if ($request && $request.method != 'OPTIONS') {
-        const tokenValue = $request.headers['Cookie'] || $request.headers['cookie'];
+        let tokenValue = $request.headers['Extra-Data'] || $request.headers['Extra-Data'];
+        let id = $request.url.split("=")[1].split('&')[0]
         if (tokenValue) {
-            $.setdata(tokenValue, ckName);
+            let cookies = $.getdata(ckName);
+            if(cookies){
+                cookies += id + ':' + tokenValue;
+            }else{
+                cookies = id + ':' + tokenValue;
+            }
+            $.setdata(cookies, ckName);
             $.msg($.name, "", "获取签到Cookie成功🎉");
         } else {
             $.msg($.name, "", "错误获取签到Cookie失败");
@@ -171,14 +180,6 @@ function DoubleLog(data) {
         console.log(`${data}`);
         $.notifyMsg.push(`${data}`);
     }
-}
-
-//把json 转为以 ‘&’ 连接的字符串
-function toParams(body) {
-    var params = Object.keys(body).map(function (key) {
-        return encodeURIComponent(key) + "=" + encodeURIComponent(body[key]);
-    }).join("&");
-    return params;
 }
 
 //检查变量
