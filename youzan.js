@@ -127,15 +127,16 @@ class UserInfo {
 //获取Cookie
 async function getCookie() {
     if ($request && $request.method != 'OPTIONS') {
-        let tokenValue = $request.headers['Extra-Data']['sid'] || $request.headers['extra-data'][sid];
-        console.log(tokenValue);
+        let tokenValue = $request.headers['Extra-Data'];
+        let sid = JSON.parse(tokenValue)
+        console.log(sid);
         let id = $request.url.split("=")[1].split('&')[0]
-        if (tokenValue) {
+        if (sid) {
             let cookies = $.getdata(ckName);
             if (cookies) {
-                cookies += "&" + id + ':' + tokenValue;
+                cookies += "&" + id + ':' + sid;
             } else {
-                cookies = id + ':' + tokenValue;
+                cookies = id + ':' + sid;
             }
             console.log(cookies);
             $.setdata(cookies, ckName);
