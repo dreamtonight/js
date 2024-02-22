@@ -126,7 +126,7 @@ class UserInfo {
 }
 //获取Cookie
 async function getCookie() {
-    if ($request && $request.method != 'OPTIONS') {
+    if (typeof $request != 'undefined') {
         console.log($.$request.headers);
         let tokenValue = $request.headers['Extra-Data'] || $request.headers['extra-data'];
         let sid = JSON.parse(tokenValue)
