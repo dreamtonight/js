@@ -127,7 +127,7 @@ class UserInfo {
 //获取Cookie
 async function getCookie() {
     if ($request && $request.method != 'OPTIONS') {
-        let tokenValue = $request.headers['Extra-Data'];
+        let tokenValue = $request.headers['Extra-Data'] || $request.headers['extra-data'];
         let sid = JSON.parse(tokenValue)
         console.log(sid);
         let id = $request.url.split("=")[1].split('&')[0]
@@ -136,7 +136,7 @@ async function getCookie() {
             if (cookies) {
                 cookies += "&" + id + ':' + sid;
             } else {
-                cookies = id + ':' + sid;
+                cookies = id + ':' + tokenValue;
             }
             console.log(cookies);
             $.setdata(cookies, ckName);
