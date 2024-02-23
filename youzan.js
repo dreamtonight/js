@@ -153,13 +153,20 @@ async function getCookie() {
     $.msg("", "", "获取签到Cookie成功🎉");
     $.log("获取签到Cookie成功🎉");
     DoubleLog("获取垃圾")
-    $.msg("", "", "res"+JSON.stringify($request.headers['Set-Cookie']));
-    $.msg("", "", "pon"+JSON.stringify($response.headers['Set-Cookie']));
+    $.msg("", "", "res" + JSON.stringify($request.url));
+    $.msg("", "", "pon" + JSON.stringify());
+    let taskId = $request.url.split("=")[1].split('&')[0];
+    let cookies = $response.headers['Set-Cookie'].split(";");
+    for (variable in cookies) {
+        if (variable.indexOf('KDTWEAPPSESSIONID')) {
+            DoubleLog("获取垃圾" + variable)
+        }
+    }
     if ($request && $request.method != 'OPTIONS') {
         const tokenValue = $request.headers['Cookie'] || $request.headers['cookie'];
         if (tokenValue) {
             // $.setdata(tokenValue, ckName);
-            $.msg($.name, "", "获取签到Cookie成功🎉"+JSON.stringify(tokenValue));
+            $.msg($.name, "", "获取签到Cookie成功🎉" + JSON.stringify(tokenValue));
         } else {
             $.msg($.name, "", "错误获取签到Cookie失败");
         }
