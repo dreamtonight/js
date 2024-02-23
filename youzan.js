@@ -70,7 +70,6 @@ async function main() {
 
 class UserInfo {
     constructor(str) {
-        this.index = ++userIdx;
         this.token = str.split(':')[1];
         this.taskId = str.split(':')[0];
         this.ckStatus = true;
@@ -89,10 +88,11 @@ class UserInfo {
         try {
             const options = {
                 //签到任务调用签到接口
-                url: `https://h5.youzan.com/wscump/checkin/checkinV2.json?checkinId=` + this.task,
+                url: `https://h5.youzan.com/wscump/checkin/checkinV2.json?checkinId=` + this.taskId,
                 //请求头, 所有接口通用
                 headers: this.headers,
             };
+            console.log(JSON.stringify(options))
             //post方法
             let result = await httpRequest(options);
             //console.log(result)
