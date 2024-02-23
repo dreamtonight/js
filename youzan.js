@@ -127,24 +127,37 @@ class UserInfo {
         }
     }
 }
+// //获取Cookie
+// async function getCookie() {
+//     DoubleLog(JSON.stringify($request.headers))
+//     console.log(JSON.stringify($request.headers))
+//     $.msg($.name, "", "获取签到Cookie成功🎉" + JSON.stringify($request.h));
+//     const tokenValue = $request.headers['Set-Cookie'] || $request.headers['Set-Cookie'];
+//     if (tokenValue) {
+//         DoubleLog(JSON.stringify($request.headers))
+//         // let cookies = $.getdata(ckName);
+//         // if (cookies) {
+//         //     cookies += "&" + id + ':' + sid;
+//         // } else {
+//         //     cookies = id + ':' + tokenValue;
+//         // }
+//         // $.setdata(tokenValue, ckName);
+//         $.msg($.name, "", "获取签到Cookie成功🎉" + JSON.stringify(tokenValue));
+//     } else {
+//         $.msg($.name, "", "错误获取签到Cookie失败");
+//     }
+// }
+
 //获取Cookie
 async function getCookie() {
-    DoubleLog(JSON.stringify($request.headers))
-    console.log(JSON.stringify($request.headers))
-    $.msg($.name, "", "获取签到Cookie成功🎉" + JSON.stringify($request.h));
-    const tokenValue = $request.headers['Set-Cookie'] || $request.headers['Set-Cookie'];
-    if (tokenValue) {
-        DoubleLog(JSON.stringify($request.headers))
-        // let cookies = $.getdata(ckName);
-        // if (cookies) {
-        //     cookies += "&" + id + ':' + sid;
-        // } else {
-        //     cookies = id + ':' + tokenValue;
-        // }
-        // $.setdata(tokenValue, ckName);
-        $.msg($.name, "", "获取签到Cookie成功🎉" + JSON.stringify(tokenValue));
-    } else {
-        $.msg($.name, "", "错误获取签到Cookie失败");
+    if ($request && $request.method != 'OPTIONS') {
+        const tokenValue = $request.headers['Cookie'] || $request.headers['cookie'];
+        if (tokenValue) {
+            // $.setdata(tokenValue, ckName);
+            $.msg($.name, "", "获取签到Cookie成功🎉"+JSON.stringify(tokenValue));
+        } else {
+            $.msg($.name, "", "错误获取签到Cookie失败");
+        }
     }
 }
 
