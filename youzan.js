@@ -92,7 +92,7 @@ class UserInfo {
                 //请求头, 所有接口通用
                 headers: this.headers,
             };
-            console.log(JSON.stringify(options))
+            // console.log(JSON.stringify(options))
             //post方法
             let result = await httpRequest(options);
             //console.log(result)
@@ -122,7 +122,7 @@ class UserInfo {
             //post方法
             let result = await httpRequest(options);
             //console.log(JSON.stringify(result));
-            DoubleLog(`【账号${this.index}】${this.msg},余额：${result?.data?.totalAmount}`)
+            DoubleLog(`【账号${this.index}】${this.msg},余额：${result?.data?.currentAmount}`)
         } catch (e) {
             console.log(e);
         }
