@@ -23,8 +23,10 @@ let envSplitor = ["@"]; //多账号分隔符
 let userCookie = ($.isNode() ? process.env[ckName] : $.getdata(ckName)) || '';
 let userList = [];
 let pd_map = {
-    '1479428': 'ffit8',
-    '2187565': '蜜蜂惊喜舍',
+    "1479428": "ffit8",
+    "2187565": "蜜蜂惊喜舍",
+    "2050884": "bosie柏喜",
+    "1631":"云南白药"
 };
 let userCount = 0;
 // 为通知准备的空数组
@@ -72,6 +74,7 @@ class UserInfo {
     constructor(str) {
         this.token = str.split(':')[1];
         this.taskId = str.split(':')[0];
+        this.index = pd_map[this.taskId]
         this.ckStatus = true;
         this.drawStatus = true;
         this.headers = {
