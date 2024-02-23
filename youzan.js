@@ -151,11 +151,10 @@ class UserInfo {
 //获取Cookie
 async function getCookie() {
     $.msg("", "", "获取签到Cookie成功🎉");
-    $.msg("", "", "获取签到Cookie成功🎉");
     $.log("获取签到Cookie成功🎉");
     DoubleLog("获取垃圾")
-    $.msg("", "", "获取签到Cookie成功🎉"+JSON.stringify($request));
-    $.msg("", "", "获取签到Cookie成功🎉"+JSON.stringify($response));
+    $.msg("", "", "res"+JSON.stringify($request.headers['Set-Cookie']));
+    $.msg("", "", "pon"+JSON.stringify($response.headers['Set-Cookie']));
     if ($request && $request.method != 'OPTIONS') {
         const tokenValue = $request.headers['Cookie'] || $request.headers['cookie'];
         if (tokenValue) {
