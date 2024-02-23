@@ -121,6 +121,7 @@ class UserInfo {
             };
             //post方法
             let result = await httpRequest(options);
+            //console.log(JSON.stringify(result));
             DoubleLog(`【账号${this.index}】${this.msg},余额：${result?.data?.totalAmount}`)
         } catch (e) {
             console.log(e);
@@ -157,7 +158,6 @@ function addCookie(cookies, newElement) {
 async function getCookie() {
     let taskId = $request.url.split("=")[1].split('&')[0];
     let headerCookie = $response.headers['Set-Cookie'];
-    DoubleLog("获取垃圾,taskId:" + taskId);
     let cookieArr = headerCookie.split(';');
     let kdt = '';
     for (var i = 0; i < cookieArr.length; i++) {
@@ -165,7 +165,6 @@ async function getCookie() {
             kdt = cookieArr[i].split(',')[1] + ";";
         }
     }
-    DoubleLog("获取垃圾,kdt:" + kdt);
     if (taskId && kdt) {
         let cookies = $.getdata(ckName);
         $.setdata(addCookie(cookies, taskId + ':' + kdt), ckName);
