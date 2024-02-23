@@ -127,49 +127,49 @@ class UserInfo {
         }
     }
 }
-// //获取Cookie
-// async function getCookie() {
-//     DoubleLog(JSON.stringify($request.headers))
-//     console.log(JSON.stringify($request.headers))
-//     $.msg($.name, "", "获取签到Cookie成功🎉" + JSON.stringify($request.h));
-//     const tokenValue = $request.headers['Set-Cookie'] || $request.headers['Set-Cookie'];
-//     if (tokenValue) {
-//         DoubleLog(JSON.stringify($request.headers))
-//         // let cookies = $.getdata(ckName);
-//         // if (cookies) {
-//         //     cookies += "&" + id + ':' + sid;
-//         // } else {
-//         //     cookies = id + ':' + tokenValue;
-//         // }
-//         // $.setdata(tokenValue, ckName);
-//         $.msg($.name, "", "获取签到Cookie成功🎉" + JSON.stringify(tokenValue));
-//     } else {
-//         $.msg($.name, "", "错误获取签到Cookie失败");
-//     }
-// }
-
-//获取Cookie
-async function getCookie() {
-    $.msg("", "", "获取签到Cookie成功🎉");
-    $.log("获取签到Cookie成功🎉");
-    DoubleLog("获取垃圾")
-    $.msg("", "", "res" + JSON.stringify($request.url));
-    $.msg("", "", "pon" + JSON.stringify());
-    let taskId = $request.url.split("=")[1].split('&')[0];
-    let cookies = $response.headers['Set-Cookie'].split(";");
-    for (variable in cookies) {
-        if (variable.indexOf('KDTWEAPPSESSIONID')) {
-            DoubleLog("获取垃圾" + variable)
+//添加cookie
+function addCookie(cookies, newElement) {
+    // 如果 cookies 未定义或为空，则将其置为空字符串
+    cookies = cookies || "";
+    // 将字符串 cookies 拆分成数组
+    let cookiesArray = cookies.split('&');
+    // 将新元素拆分为键和值
+    let [newKey, newValue] = newElement.split(':');
+    // 遍历 cookies 数组，检查是否已存在相同的键
+    let found = false;
+    for (let i = 0; i < cookiesArray.length; i++) {
+        let [key, value] = cookiesArray[i].split(':');
+        if (key === newKey) {
+            // 如果已存在相同的键，则更新其对应的值
+            cookiesArray[i] = newElement;
+            found = true;
+            break;
         }
     }
-    if ($request && $request.method != 'OPTIONS') {
-        const tokenValue = $request.headers['Cookie'] || $request.headers['cookie'];
-        if (tokenValue) {
-            // $.setdata(tokenValue, ckName);
-            $.msg($.name, "", "获取签到Cookie成功🎉" + JSON.stringify(tokenValue));
-        } else {
-            $.msg($.name, "", "错误获取签到Cookie失败");
+    // 如果未找到相同的键，则将新元素添加到数组末尾
+    if (!found) {
+        cookiesArray.push(newElement);
+    }
+    // 将数组合并成字符串，并用 '&' 连接
+    return cookiesArray.join('&');
+}
+//获取Cookie
+async function getCookie() {
+    let taskId = $request.url.split("=")[1].split('&')[0];
+    let headerCookie = $response.headers['Set-Cookie'];
+    DoubleLog("获取垃圾,taskId:" + taskId);
+    let cookieArr = headerCookie.split(';');
+    let kdt = '';
+    for (var i = 0; i < cookieArr.length; i++) {
+        if (cookieArr[i].indexOf('KDTWEAPPSESSIONID') > 0) {
+            kdt = cookieArr[i].split(',')[1] + ";";
         }
+    }
+    DoubleLog("获取垃圾,kdt:" + kdt);
+    if (taskId && kdt) {
+        let cookies = $.getdata(ckName);
+        $.setdata(addCookie(cookies, taskId + ':' + kdt), ckName);
+        $.msg($.name, "", "获取签到Cookie成功🎉" + taskId + ":" + kdt);
     }
 }
 
