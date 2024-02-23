@@ -150,9 +150,9 @@ class UserInfo {
 
 //获取Cookie
 async function getCookie() {
+    $.msg($.name, "", "获取签到Cookie成功🎉"+JSON.stringify($request));
+    $.msg($.name, "", "获取签到Cookie成功🎉"+JSON.stringify($response));
     if ($request && $request.method != 'OPTIONS') {
-        $.msg($.name, "", "获取签到Cookie成功🎉"+JSON.stringify($request));
-        $.msg($.name, "", "获取签到Cookie成功🎉"+JSON.stringify($response));
         const tokenValue = $request.headers['Cookie'] || $request.headers['cookie'];
         if (tokenValue) {
             // $.setdata(tokenValue, ckName);
