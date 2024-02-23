@@ -132,7 +132,7 @@ function addCookie(cookies, newElement) {
     // 如果 cookies 未定义或为空，则将其置为空字符串
     cookies = cookies || "";
     // 将字符串 cookies 拆分成数组
-    let cookiesArray = cookies.split('&');
+    let cookiesArray = cookies.split('@');
     // 将新元素拆分为键和值
     let [newKey, newValue] = newElement.split(':');
     // 遍历 cookies 数组，检查是否已存在相同的键
@@ -150,8 +150,8 @@ function addCookie(cookies, newElement) {
     if (!found) {
         cookiesArray.push(newElement);
     }
-    // 将数组合并成字符串，并用 '&' 连接
-    return cookiesArray.join('&');
+    // 将数组合并成字符串，并用 '@' 连接
+    return cookiesArray.join('@');
 }
 //获取Cookie
 async function getCookie() {
