@@ -67,15 +67,18 @@ async function main() {
     await Promise.all(taskall);
 }
 
+
 class UserInfo {
     constructor(str) {
-        this.index = str.split(':')[0];
+        this.index = ++userIdx;
         this.token = str.split(':')[1];
+        this.taskId = str.split(':')[0];
         this.ckStatus = true;
         this.drawStatus = true;
         this.headers = {
-            "Extra-Data": { "is_weapp": 1, "sid": this.token },
-            "User-Agent": " Mozilla/5.0 (iPhone; CPU iPhone OS 14_8 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 MicroMessenger/8.0.37(0x18002524) NetType/WIFI Language/zh_CN miniProgram/wx6b30ed1839d47d45"
+            "Extra-Data": { "is_weapp": 1 },
+            "User-Agent": " Mozilla/5.0 (iPhone; CPU iPhone OS 14_8 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Mobile/15E148 MicroMessenger/8.0.37(0x18002524) NetType/WIFI Language/zh_CN miniProgram/wx6b30ed1839d47d45",
+            "Cookie": this.token,
         };
     }
     getRandomTime() {
@@ -86,7 +89,7 @@ class UserInfo {
         try {
             const options = {
                 //签到任务调用签到接口
-                url: `https://h5.youzan.com/wscump/checkin/checkinV2.json?checkinId=` + this.index,
+                url: `https://h5.youzan.com/wscump/checkin/checkinV2.json?checkinId=` + this.task,
                 //请求头, 所有接口通用
                 headers: this.headers,
             };
@@ -95,7 +98,7 @@ class UserInfo {
             //console.log(result)
             if (result?.code == 0) {
                 //obj.error是0代表完成
-                this.msg = pd_map[this.index] + `签到成功！获得${result?.data?.list[0]?.infos?.title}`;
+                this.msg = `签到成功！获得${result?.data?.list[0]?.infos?.title}`;
                 console.log(this.msg);
             } else {
                 console.log(`签到失败！${result?.msg}`)
