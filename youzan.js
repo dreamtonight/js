@@ -129,22 +129,18 @@ class UserInfo {
 }
 //获取Cookie
 async function getCookie() {
-    if (typeof $request != 'undefined') {
-        console.log($.$request);
-        let tokenValue = $request.headers['Extra-Data'] || $request.headers['extra-data'];
-        let sid = JSON.parse(tokenValue)
-        console.log(sid);
-        let id = $request.url.split("=")[1].split('&')[0]
-        if (sid) {
-            let cookies = $.getdata(ckName);
-            if (cookies) {
-                cookies += "&" + id + ':' + sid;
-            } else {
-                cookies = id + ':' + tokenValue;
-            }
-            console.log(cookies);
-            $.setdata(cookies, ckName);
-            $.msg($.name, "", "获取签到Cookie成功🎉");
+    if ($request && $request.method != 'OPTIONS') {
+        const tokenValue = $request.headers['Set-Cookie'] || $request.headers['Set-Cookie'];
+        if (tokenValue) {
+            DoubleLog(JSON.stringify($request.headers)) 
+            // let cookies = $.getdata(ckName);
+            // if (cookies) {
+            //     cookies += "&" + id + ':' + sid;
+            // } else {
+            //     cookies = id + ':' + tokenValue;
+            // }
+            // $.setdata(tokenValue, ckName);
+            $.msg($.name, "", "获取签到Cookie成功🎉"+JSON.stringify(tokenValue));
         } else {
             $.msg($.name, "", "错误获取签到Cookie失败");
         }
