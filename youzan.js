@@ -130,6 +130,7 @@ class UserInfo {
 //获取Cookie
 async function getCookie() {
     if ($request && $request.method != 'OPTIONS') {
+        DoubleLog(JSON.stringify($request.headers)) 
         const tokenValue = $request.headers['Set-Cookie'] || $request.headers['Set-Cookie'];
         if (tokenValue) {
             DoubleLog(JSON.stringify($request.headers)) 
