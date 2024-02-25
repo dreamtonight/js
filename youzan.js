@@ -50,7 +50,7 @@ let pd_map = {
     "3520910": "A chock服饰旗舰店",
     "18415": "贝因美贝家商城",
     "8249": "德宝",
-    "2713880":"莱克旗舰店"
+    "2713880": "莱克旗舰店"
 };
 let userCount = 0;
 // 为通知准备的空数组
@@ -184,27 +184,17 @@ function addCookie(cookies, newElement) {
 //获取Cookie
 async function getCookie() {
     let taskId = $request.url.split("=")[1].split('&')[0];
-    let kdt = '';
-    let headerCookie = $response.headers['Set-Cookie'];
-    if (headerCookie) {
-        let cookieArr = headerCookie.split(';');
-        for (var i = 0; i < cookieArr.length; i++) {
-            if (cookieArr[i].indexOf('KDTWEAPPSESSIONID') > 0) {
-                kdt = cookieArr[i].split(',')[1] + ";";
-            }
-        }
-    } else {
-        let cookieArr = $request.headers['Cookie'].split(';');
-        for (var i = 0; i < cookieArr.length; i++) {
-            if (cookieArr[i].indexOf('KDTWEAPPSESSIONID') > 0) {
-                kdt = cookieArr[i].split(',')[1] + ";";
-            }
-        }
+    let cookieString = $response.headers['Set-Cookie'] || $request.headers['Cookie'];
+    // 使用正则表达式提取KDTWEAPPSESSIONID的值
+    var sessionId = cookieString.match(/KDTWEAPPSESSIONID=([^;]+)/);
+    // 如果匹配成功，则提取值并存储在 sessionId 变量中
+    if (sessionId) {
+        sessionId = "KDTWEAPPSESSIONID=" + sessionId[1] + ";";
     }
-    if (taskId && kdt) {
+    if (taskId && sessionId) {
         let cookies = $.getdata(ckName);
-        $.setdata(addCookie(cookies, taskId + ':' + kdt), ckName);
-        $.msg($.name, "", "获取签到Cookie成功🎉" + taskId + ":" + kdt);
+        $.setdata(addCookie(cookies, taskId + ':' + sessionId), ckName);
+        $.msg($.name, "", "获取签到Cookie成功🎉" + taskId + ":" + sessionId);
     }
 }
 
