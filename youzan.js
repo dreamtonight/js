@@ -146,7 +146,7 @@ class UserInfo {
             //post方法
             let result = await httpRequest(options);
             //console.log(JSON.stringify(result));
-            DoubleLog(`【账号${this.index}】${this.msg},余额：${result?.data?.currentAmount}`)
+            DoubleLog(`【${this.index}】${this.msg},余额：${result?.data?.currentAmount}`)
         } catch (e) {
             console.log(e);
         }
@@ -181,12 +181,21 @@ function addCookie(cookies, newElement) {
 //获取Cookie
 async function getCookie() {
     let taskId = $request.url.split("=")[1].split('&')[0];
-    let headerCookie = $response.headers['Set-Cookie'];
-    let cookieArr = headerCookie.split(';');
     let kdt = '';
-    for (var i = 0; i < cookieArr.length; i++) {
-        if (cookieArr[i].indexOf('KDTWEAPPSESSIONID') > 0) {
-            kdt = cookieArr[i].split(',')[1] + ";";
+    let headerCookie = $response.headers['Set-Cookie'];
+    if (headerCookie) {
+        let cookieArr = headerCookie.split(';');
+        for (var i = 0; i < cookieArr.length; i++) {
+            if (cookieArr[i].indexOf('KDTWEAPPSESSIONID') > 0) {
+                kdt = cookieArr[i].split(',')[1] + ";";
+            }
+        }
+    } else {
+        let cookieArr = $request.headers['Cookie'].split(';');
+        for (var i = 0; i < cookieArr.length; i++) {
+            if (cookieArr[i].indexOf('KDTWEAPPSESSIONID') > 0) {
+                kdt = cookieArr[i].split(',')[1] + ";";
+            }
         }
     }
     if (taskId && kdt) {
